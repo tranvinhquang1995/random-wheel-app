@@ -3,9 +3,9 @@ import random
 import time
 
 # Cấu hình giao diện rộng rãi (Wide layout) và tiêu đề trang
-st.set_page_config(page_title="Vòng Quay May Mắn - Multiplayer v9", layout="wide")
+st.set_page_config(page_title="Vòng Quay May Mắn - Multiplayer v10", layout="wide")
 
-# CSS ĐẶC BIỆT: Khóa cứng Dark Mode, ẩn menu cài đặt, nút 3 chấm, footer và dọn dẹp viền thừa của Form
+# CSS ĐẶC BIỆT: Khóa cứng Dark Mode, ẩn menu cài đặt, nút 3 chấm và footer của Streamlit
 st.markdown("""
 <style>
     /* 1. ẨN HOÀN TOÀN MENU BA CHẤM (SETTINGS) VÀ FOOTER ĐỂ NGƯỜI DÙNG KHÔNG THỂ CHUYỂN CHẾ ĐỘ */
@@ -15,15 +15,7 @@ st.markdown("""
     div[data-testid="stToolbar"] {visibility: hidden; display: none !important;}
     div[data-testid="stDecoration"] {display: none !important;}
     
-    /* 2. XÓA BỎ VIỀN VÀ NỀN MẶC ĐỊNH CỦA KHUNG FORM (CHỐNG LỖI HIỂN THỊ 2 HỘP LỒNG NHAU) */
-    div[data-testid="stForm"] {
-        border: none !important;
-        background: transparent !important;
-        padding: 0 !important;
-        box-shadow: none !important;
-    }
-    
-    /* 3. ÉP BUỘC TOÀN BỘ NỀN TRANG CHÍNH VÀ CHỮ SANG TÔNG TỐI (DARK MODE) */
+    /* 2. ÉP BUỘC TOÀN BỘ NỀN TRANG CHÍNH VÀ CHỮ SANG TÔNG TỐI (DARK MODE) */
     html, body, [data-testid="stAppViewContainer"] {
         background-color: #0e1117 !important;
         color: #ffffff !important;
@@ -34,7 +26,7 @@ st.markdown("""
         color: #ffffff !important;
     }
 
-    /* 4. THIẾT KẾ CÁC Ô TỪ KHÓA MẶC ĐỊNH (Tông tối gaming) */
+    /* 3. THIẾT KẾ CÁC Ô TỪ KHÓA MẶC ĐỊNH (Tông tối gaming) */
     .keyword-card {
         padding: 15px;
         margin: 5px;
@@ -71,7 +63,7 @@ st.markdown("""
         to { background-color: #FFD700 !important; transform: scale(1.03); border-color: #FFD700; box-shadow: 0px 4px 10px rgba(255, 215, 0, 0.6); }
     }
     
-    /* 5. HỘP NHẬP TỪ KHÓA BÊN CỘT TRÁI (Tông xám tối) */
+    /* 4. HỘP NHẬP TỪ KHÓA BÊN CỘT TRÁI (Tông xám tối) */
     .input-box {
         background-color: #1e222b !important;
         border-radius: 12px;
@@ -80,7 +72,7 @@ st.markdown("""
         border: 1px solid #3c4048 !important;
     }
     
-    /* 6. KIỂU DÁNG THẺ LỊCH SỬ KẾ QUẢ (Đồng bộ Dark Mode) */
+    /* 5. KIỂU DÁNG THẺ LỊCH SỬ KẾ QUẢ (Đồng bộ Dark Mode) */
     .history-card {
         background-color: #1e222b !important;
         border-left: 5px solid #FF4B4B;
@@ -142,8 +134,8 @@ def render_grid_html(keywords, active_idx=None, is_global_spinning=False):
     """
 
 # Giao diện chính của ứng dụng
-st.markdown("<h1 style='text-align: center; color: #FF4B4B;'>🎰 VÒNG QUAY MAY MẮN MULTIPLAYER v9 🎰</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; font-size: 16px; margin-bottom: 30px; color: #cccccc !important;'>Hệ thống vòng quay thời gian thực - Cố định giao diện Dark Mode</p>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; color: #FF4B4B;'>🎰 VÒNG QUAY MAY MẮN MULTIPLAYER v10 🎰</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; font-size: 16px; margin-bottom: 30px; color: #cccccc !important;'>Đã khóa cứng giao diện Dark Mode & dọn dẹp hoàn toàn viền hộp thừa!</p>", unsafe_allow_html=True)
 
 # Chia cột chính
 col_left, col_right = st.columns([1, 2])
@@ -159,30 +151,36 @@ with col_left:
     if is_locked:
         st.warning("⚠️ Vòng quay đang hoạt động! Chức năng thêm từ khóa tạm thời bị khóa.")
     else:
-        st.write("Nhập từ khóa mới rồi ấn nút Thêm hoặc phím Enter:")
+        st.write("Nhập từ khóa mới rồi ấn Enter hoặc nút Thêm:")
+
+    # Hàm callback xử lý thêm từ khóa không cần st.form
+    def handle_add():
+        if "add_kw_input" in st.session_state:
+            val = st.session_state["add_kw_input"].strip()
+            if val:
+                if val not in shared.keywords:
+                    shared.keywords.append(val)
+                    st.toast(f"Đã thêm từ khóa: {val}")
+                else:
+                    st.warning("Từ khóa này đã tồn tại trong danh sách!")
+                # Xóa sạch text trong ô sau khi xử lý thành công
+                st.session_state["add_kw_input"] = ""
+
+    # Ô nhập liệu phẳng (Sử dụng callback trực tiếp, KHÔNG dùng st.form để triệt tiêu hoàn toàn viền xám thừa)
+    st.text_input(
+        "Nhập từ khóa mới:", 
+        placeholder="Gõ từ khóa tại đây...", 
+        key="add_kw_input",
+        disabled=is_locked,
+        label_visibility="collapsed",
+        on_change=handle_add
+    )
     
-    # Form nhập (Dùng CSS ẩn hoàn toàn khung viền thừa của form và nhãn của text input)
-    with st.form("add_kw_form", clear_on_submit=True, border=False):
-        new_kw = st.text_input(
-            "Nhập từ khóa mới:", 
-            placeholder="Gõ từ khóa tại đây rồi nhấn Thêm...", 
-            key="add_kw_input",
-            disabled=is_locked,
-            label_visibility="collapsed"
-        )
-        submit_btn = st.form_submit_button(
-            "➕ Thêm vào danh sách", 
-            use_container_width=True,
-            disabled=is_locked
-        )
-        if submit_btn and new_kw.strip():
-            val = new_kw.strip()
-            if val not in shared.keywords:
-                shared.keywords.append(val)
-                st.toast(f"Đã thêm từ khóa: {val}")
-                st.rerun()
-            else:
-                st.warning("Từ khóa này đã tồn tại trong danh sách!")
+    # Nút thêm thủ công (gọi callback trực tiếp)
+    if st.button("➕ Thêm vào danh sách", use_container_width=True, disabled=is_locked, key="add_btn_manual"):
+        handle_add()
+        st.rerun()
+
     st.markdown("</div>", unsafe_allow_html=True)
 
 # CỘT PHẢI: HIỂN THỊ DANH SÁCH LIVESYNC, VÒNG QUAY & LÌCH SỬ (Tự động cập nhật qua Fragment)
@@ -365,8 +363,7 @@ st.markdown("""
     color: #888888 !important;
     font-size: 14px;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: transparent !important;
-    font-weight: normal !important;
+    background-color: transparent;
 ">
     © 2026 - Developed by Nobita | Vòng Quay May Mắn Multiplayer
 </div>

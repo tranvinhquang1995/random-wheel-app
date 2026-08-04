@@ -3,12 +3,12 @@ import random
 import time
 
 # Cấu hình giao diện rộng rãi (Wide layout) và tiêu đề trang
-st.set_page_config(page_title="Vòng Quay May Mắn - Multiplayer v4", layout="wide")
+st.set_page_config(page_title="Vòng Quay May Mắn - Multiplayer v5", layout="wide")
 
-# CSS để tùy chỉnh giao diện đẹp mắt và bền bỉ trước cả hai chế độ sáng/tối (Light/Dark Mode)
+# CSS để tùy chỉnh giao diện đẹp mắt và ép buộc màu chữ (Hỗ trợ hoàn hảo Dark Mode)
 st.markdown("""
 <style>
-    /* Kiểu dáng cho các ô từ khóa mặc định */
+    /* Kiểu dáng cho các ô từ khóa mặc định trong vòng quay */
     .keyword-card {
         padding: 15px;
         margin: 5px;
@@ -18,7 +18,7 @@ st.markdown("""
         font-weight: bold;
         text-align: center;
         background-color: #f0f2f6;
-        color: #31333F !important; /* Ép buộc màu chữ tối màu */
+        color: #1E1E1E !important; /* Ép buộc chữ màu tối */
         transition: all 0.1s ease-in-out;
     }
     /* Kiểu dáng cho ô từ khóa đang được chọn/nhấp nháy khi quay */
@@ -41,8 +41,19 @@ st.markdown("""
         animation: pulse-spin 0.6s infinite alternate;
     }
     @keyframes pulse-spin {
-        from { background-color: #f0f2f6; transform: scale(1); border-color: #e0e0e0; }
-        to { background-color: #FFD700; transform: scale(1.03); border-color: #FFD700; box-shadow: 0px 4px 10px rgba(255, 215, 0, 0.4); }
+        from { 
+            background-color: #f0f2f6; 
+            transform: scale(1); 
+            border-color: #e0e0e0; 
+            color: #1E1E1E !important;
+        }
+        to { 
+            background-color: #FFD700; 
+            transform: scale(1.03); 
+            border-color: #FFD700; 
+            box-shadow: 0px 4px 10px rgba(255, 215, 0, 0.4);
+            color: #1E1E1E !important; /* Ép chữ màu tối trên nền vàng */
+        }
     }
     /* Hộp nhập từ khóa bên cột trái */
     .input-box {
@@ -52,7 +63,7 @@ st.markdown("""
         box-shadow: 0px 4px 12px rgba(0,0,0,0.05);
         border: 1px solid #e9ecef;
     }
-    /* Kiểu dáng thẻ lịch sử kết quả - cố định chữ màu xám tối để tránh lỗi Dark Mode */
+    /* Kiểu dáng thẻ lịch sử kết quả */
     .history-card {
         background-color: #f8f9fa;
         border-left: 5px solid #FF4B4B;
@@ -60,7 +71,7 @@ st.markdown("""
         margin-bottom: 8px;
         border-radius: 4px;
         font-weight: bold;
-        color: #1E1E1E !important; /* Đảm bảo luôn đọc được chữ */
+        color: #1E1E1E !important; /* Ép buộc chữ màu tối */
         box-shadow: 0px 2px 4px rgba(0,0,0,0.02);
     }
 </style>
@@ -85,7 +96,7 @@ shared = get_shared_state()
 if "seen_spin_id" not in st.session_state:
     st.session_state["seen_spin_id"] = 0
 
-# Hàm sinh HTML lưới ô chứa các từ khóa (Vòng quay chính)
+# Hàm sinh HTML lưới ô chứa các từ khóa
 def render_grid_html(keywords, active_idx=None, is_global_spinning=False):
     if not keywords:
         return "<div style='text-align: center; color: #888; padding: 20px;'>Chưa có từ khóa nào được nhập. Hãy nhập từ khóa ở bảng bên trái!</div>"
@@ -111,94 +122,72 @@ def render_grid_html(keywords, active_idx=None, is_global_spinning=False):
     """
 
 # Giao diện chính của ứng dụng
-st.markdown("<h1 style='text-align: center; color: #FF4B4B;'>🎰 VÒNG QUAY MAY MẮN MULTIPLAYER v4 🎰</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; font-size: 16px; margin-bottom: 30px;'>Giải pháp đồng bộ hóa hoàn hảo: Chống trùng đè, Khóa tương tác khi quay, Tối ưu Dark Mode!</p>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; color: #FF4B4B;'>🎰 VÒNG QUAY MAY MẮN MULTIPLAYER v5 🎰</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; font-size: 16px; margin-bottom: 30px;'>Đồng bộ hóa hoàn hảo: Nhập không trùng lặp, khóa khi quay, hiển thị Dark Mode chuẩn!</p>", unsafe_allow_html=True)
 
-# Chia cột chính
+# Chia cột chính (Cột trái nhập liệu, Cột phải hiển thị vòng quay)
 col_left, col_right = st.columns([1, 2])
 
-# CỘT TRÁI: NHẬP TỪ KHÓA (Tự động khóa khi có người đang quay)
+# CỘT TRÁI: NHẬP TỪ KHÓA
 with col_left:
     st.markdown("<div class='input-box'>", unsafe_allow_html=True)
     st.subheader("📝 Thêm Từ Khóa")
     
-    # 1. Phát hiện trạng thái quay để khóa nhập liệu từ xa
+    # Khóa ô nhập liệu khi vòng quay đang hoạt động
     if shared.is_spinning:
-        st.warning("⚠️ Vòng quay đang hoạt động! Chức năng thêm từ khóa tạm thời bị khóa để tránh gián đoạn.")
-        is_input_disabled = True
+        st.warning("⚠️ Vòng quay đang hoạt động! Chức năng thêm từ khóa tạm thời bị khóa.")
+        st.text_input("Nhập từ khóa mới:", placeholder="Đang khóa...", disabled=True, key="add_kw_input_disabled")
     else:
         st.write("Nhập từ khóa mới rồi ấn nút Thêm hoặc phím Enter:")
-        is_input_disabled = False
-    
-    # Form nhập để tự động xóa nội dung sau khi nhấn gửi
-    with st.form("add_kw_form", clear_on_submit=True):
-        new_kw = st.text_input(
-            "Nhập từ khóa mới:", 
-            placeholder="Ví dụ: Huawei, Nokia...", 
-            key="add_kw_input", 
-            disabled=is_input_disabled
-        )
-        submit_btn = st.form_submit_button(
-            "➕ Thêm vào danh sách", 
-            use_container_width=True, 
-            disabled=is_input_disabled
-        )
-        if submit_btn and new_kw.strip():
-            val = new_kw.strip()
-            if val not in shared.keywords:
-                shared.keywords.append(val)
-                st.toast(f"Đã thêm từ khóa: {val}")
-                st.rerun()
-            else:
-                st.warning("Từ khóa này đã tồn tại trong danh sách!")
+        with st.form("add_kw_form", clear_on_submit=True):
+            new_kw = st.text_input("Nhập từ khóa mới:", placeholder="Ví dụ: Huawei, Nokia...", key="add_kw_input")
+            submit_btn = st.form_submit_button("➕ Thêm vào danh sách", use_container_width=True)
+            if submit_btn and new_kw.strip():
+                val = new_kw.strip()
+                if val not in shared.keywords:
+                    shared.keywords.append(val)
+                    st.toast(f"Đã thêm từ khóa: {val}")
+                    st.rerun()
+                else:
+                    st.warning("Từ khóa này đã tồn tại trong danh sách!")
+                    
     st.markdown("</div>", unsafe_allow_html=True)
 
-# CỘT PHẢI: HIỂN THỊ DANH SÁCH LIVESYNC, VÒNG QUAY & LÌCH SỬ (Tự động cập nhật qua Fragment)
+# CỘT PHẢI: HIỂN THỊ DANH SÁCH LIVESYNC, VÒNG QUAY & LỊCH SỬ (Tự động cập nhật)
 with col_right:
     @st.fragment(run_every=1.5)
     def render_live_area():
-        # Kiểm tra xem có kết quả quay mới từ người dùng khác không để kích hoạt popup đồng bộ
+        # Kiểm tra lượt quay mới để hiển thị popup đồng bộ
         if shared.last_spin:
             last_id = shared.last_spin["id"]
             last_timestamp = shared.last_spin["timestamp"]
-            # Chỉ hiển thị popup nếu đó là lượt quay mới và diễn ra trong vòng 15 giây qua
             if last_id != st.session_state["seen_spin_id"] and (time.time() - last_timestamp < 15.0):
                 st.session_state["show_winner"] = shared.last_spin["winner"]
                 st.session_state["seen_spin_id"] = last_id
                 st.rerun()
 
-        # Chia cột nhỏ bên trong vùng fragment
         col_kw_list, col_wheel, col_hist = st.columns([1, 1.8, 0.9])
         
-        # 1. Danh sách từ khóa trực quan (Cập nhật trực tiếp khi người khác thêm/xóa)
+        # 1. Danh sách từ khóa hiện tại (Có nút xóa)
         with col_kw_list:
-            st.markdown("### 📋 Từ Khóa Hiện Tại")
+            st.markdown("### 📋 Từ Khóa")
             if not shared.keywords:
-                st.info("Danh sách trống. Vui lòng thêm từ khóa!")
+                st.info("Danh sách trống.")
             else:
                 for idx, kw in enumerate(shared.keywords):
-                    col_item_text, col_item_btn = st.columns([4, 1])
-                    # Fix lỗi hiển thị màu chữ trong cột danh sách (ép buộc màu xám tối #1E1E1E khi ở Dark Mode)
+                    col_item_text, col_item_btn = st.columns([4, 1.2])
+                    # SỬA LỖI MÀU CHỮ: Thêm thuộc tính color: #1e1e1e !important vào inline CSS để không bị trắng chữ ở Dark Mode
                     col_item_text.markdown(
-                        f"""<div style='
-                            padding: 6px; 
-                            background: #f0f2f6; 
-                            border-radius: 5px; 
-                            font-weight: bold; 
-                            font-size: 14px; 
-                            color: #1E1E1E !important; 
-                            text-overflow: ellipsis; 
-                            overflow: hidden; 
-                            white-space: nowrap;
-                        '>{kw}</div>""", 
+                        f"<div style='padding: 6px; background: #f0f2f6; border-radius: 5px; font-weight: bold; font-size:14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; color: #1E1E1E !important;'>{kw}</div>", 
                         unsafe_allow_html=True
                     )
-                    # Nút xóa nhanh từ khóa đó (Vô hiệu hóa khi đang quay)
+                    # Nút xóa nhanh từ khóa (Khóa lại khi đang quay)
                     if col_item_btn.button("❌", key=f"del_{idx}_{kw}", disabled=shared.is_spinning):
                         shared.keywords.pop(idx)
                         st.rerun()
                 
-                # Nút dọn dẹp sạch danh sách (Vô hiệu hóa khi đang quay)
+                st.write("")
+                # Nút dọn dẹp sạch danh sách (Khóa lại khi đang quay)
                 if st.button("🗑️ Xóa tất cả", use_container_width=True, key="clear_all", disabled=shared.is_spinning):
                     shared.keywords = []
                     st.rerun()
@@ -210,21 +199,18 @@ with col_right:
                 for idx, winner_item in enumerate(shared.history[:5]):
                     st.markdown(f"<div class='history-card'>#{idx+1}: {winner_item}</div>", unsafe_allow_html=True)
             else:
-                st.info("Chưa có lượt quay nào.")
+                st.info("Chưa có lượt quay.")
                 
-        # 3. Khu vực Vòng Quay May Mắn chính giữa
+        # 3. Khu vực Vòng Quay chính giữa
         with col_wheel:
             st.markdown("<h3 style='margin-top:0;'>🎯 Trạng Thái Vòng Quay</h3>", unsafe_allow_html=True)
             grid_placeholder = st.empty()
             
-            # Giao diện vòng quay theo trạng thái
             if shared.is_spinning:
-                # Những người dùng khác đang xem sẽ thấy các ô chuyển động nhấp nháy màu vàng
                 grid_placeholder.markdown(render_grid_html(shared.keywords, is_global_spinning=True), unsafe_allow_html=True)
                 st.warning("🎰 Đang có người quay thưởng! Hãy hồi hộp theo dõi...")
                 st.button("🚀 ĐANG QUAY...", use_container_width=True, disabled=True, key="spin_disabled_btn")
             else:
-                # Trạng thái tĩnh bình thường
                 grid_placeholder.markdown(render_grid_html(shared.keywords), unsafe_allow_html=True)
                 spin_btn = st.button("🚀 BẮT ĐẦU QUAY NGẪU NHIÊN", use_container_width=True, key="active_spin_btn")
                 
@@ -232,12 +218,10 @@ with col_right:
                     if len(shared.keywords) < 2:
                         st.error("❌ Vui lòng có ít nhất 2 từ khóa để quay thưởng!")
                     else:
-                        # Bắt đầu quy trình quay
                         shared.is_spinning = True
                         new_spin_id = random.randint(100000, 999999)
                         shared.current_spin_id = new_spin_id
                         
-                        # Hiệu ứng chạy vòng tròn giảm tốc cơ học trong ~10 giây
                         start_time = time.time()
                         duration = 10.0
                         num_kws = len(shared.keywords)
@@ -248,7 +232,6 @@ with col_right:
                             if elapsed >= duration:
                                 break
                             
-                            # Công thức giảm tốc tăng thời gian trễ theo đồ thị hàm mũ
                             progress = elapsed / duration
                             sleep_time = 0.05 + 0.75 * (progress ** 2.5)
                             
@@ -256,14 +239,11 @@ with col_right:
                             grid_placeholder.markdown(render_grid_html(shared.keywords, active_idx=current_idx), unsafe_allow_html=True)
                             time.sleep(sleep_time)
                         
-                        # Xác định kết quả chiến thắng cuối cùng
                         winner_idx = random.randint(0, num_kws - 1)
                         winner_name = shared.keywords[winner_idx]
                         
-                        # Làm sáng rực ô chiến thắng
                         grid_placeholder.markdown(render_grid_html(shared.keywords, active_idx=winner_idx), unsafe_allow_html=True)
                         
-                        # Đồng bộ hóa kết quả lên bộ nhớ chung
                         shared.history.insert(0, winner_name)
                         shared.last_spin = {
                             "id": new_spin_id,
@@ -272,7 +252,6 @@ with col_right:
                         }
                         shared.is_spinning = False
                         
-                        # Kích hoạt hiển thị popup cục bộ
                         st.session_state["show_winner"] = winner_name
                         st.session_state["seen_spin_id"] = new_spin_id
                         st.rerun()
@@ -282,9 +261,8 @@ with col_right:
 # 3. HIỂN THỊ POPUP THÔNG BÁO CHIẾN THẮNG (Tự động tắt sau 3 giây)
 if "show_winner" in st.session_state:
     winner = st.session_state["show_winner"]
-    st.balloons()  # Hiệu ứng bong bóng bay chúc mừng toàn màn hình
+    st.balloons()
     
-    # Hộp thông báo Modal Overlay đè lên giao diện chính (Cố định màu chữ tối để tránh lỗi Dark Mode)
     st.markdown(f"""
     <div style="
         position: fixed;
@@ -299,7 +277,6 @@ if "show_winner" in st.session_state:
         text-align: center;
         border: 4px solid #FF4B4B;
         width: 480px;
-        color: #1E1E1E !important;
     ">
         <h2 style="color: #FF4B4B; margin-top: 0; font-size: 32px; letter-spacing: 1px;">🎉 CHÚC MỪNG! 🎉</h2>
         <p style="font-size: 18px; color: #555; margin-bottom: 5px;">Kết quả may mắn nhận được là:</p>
@@ -312,7 +289,6 @@ if "show_winner" in st.session_state:
             margin-top: 20px;
             overflow: hidden;
         ">
-            <!-- Thanh thời gian 3 giây co ngắn dần bằng CSS Animation -->
             <div style="
                 background-color: #FF4B4B;
                 height: 100%;
@@ -330,7 +306,6 @@ if "show_winner" in st.session_state:
     </style>
     """, unsafe_allow_html=True)
     
-    # Dừng 3 giây rồi xóa trạng thái để ẩn popup và làm mới trang
     time.sleep(3)
     del st.session_state["show_winner"]
     st.rerun()

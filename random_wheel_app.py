@@ -3,9 +3,9 @@ import random
 import time
 
 # Cấu hình giao diện rộng rãi (Wide layout) và tiêu đề trang
-st.set_page_config(page_title="Vòng Quay May Mắn - Multiplayer v8", layout="wide")
+st.set_page_config(page_title="Vòng Quay May Mắn - Multiplayer v9", layout="wide")
 
-# CSS ĐẶC BIỆT: Khóa cứng Dark Mode, ẩn menu cài đặt, nút 3 chấm và footer của Streamlit
+# CSS ĐẶC BIỆT: Khóa cứng Dark Mode, ẩn menu cài đặt, nút 3 chấm, footer và dọn dẹp viền thừa của Form
 st.markdown("""
 <style>
     /* 1. ẨN HOÀN TOÀN MENU BA CHẤM (SETTINGS) VÀ FOOTER ĐỂ NGƯỜI DÙNG KHÔNG THỂ CHUYỂN CHẾ ĐỘ */
@@ -15,7 +15,15 @@ st.markdown("""
     div[data-testid="stToolbar"] {visibility: hidden; display: none !important;}
     div[data-testid="stDecoration"] {display: none !important;}
     
-    /* 2. ÉP BUỘC TOÀN BỘ NỀN TRANG CHÍNH VÀ CHỮ SANG TÔNG TỐI (DARK MODE) */
+    /* 2. XÓA BỎ VIỀN VÀ NỀN MẶC ĐỊNH CỦA KHUNG FORM (CHỐNG LỖI HIỂN THỊ 2 HỘP LỒNG NHAU) */
+    div[data-testid="stForm"] {
+        border: none !important;
+        background: transparent !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+    }
+    
+    /* 3. ÉP BUỘC TOÀN BỘ NỀN TRANG CHÍNH VÀ CHỮ SANG TÔNG TỐI (DARK MODE) */
     html, body, [data-testid="stAppViewContainer"] {
         background-color: #0e1117 !important;
         color: #ffffff !important;
@@ -26,7 +34,7 @@ st.markdown("""
         color: #ffffff !important;
     }
 
-    /* 3. THIẾT KẾ CÁC Ô TỪ KHÓA MẶC ĐỊNH (Tông tối gaming) */
+    /* 4. THIẾT KẾ CÁC Ô TỪ KHÓA MẶC ĐỊNH (Tông tối gaming) */
     .keyword-card {
         padding: 15px;
         margin: 5px;
@@ -63,7 +71,7 @@ st.markdown("""
         to { background-color: #FFD700 !important; transform: scale(1.03); border-color: #FFD700; box-shadow: 0px 4px 10px rgba(255, 215, 0, 0.6); }
     }
     
-    /* 4. HỘP NHẬP TỪ KHÓA BÊN CỘT TRÁI (Tông xám tối) */
+    /* 5. HỘP NHẬP TỪ KHÓA BÊN CỘT TRÁI (Tông xám tối) */
     .input-box {
         background-color: #1e222b !important;
         border-radius: 12px;
@@ -72,7 +80,7 @@ st.markdown("""
         border: 1px solid #3c4048 !important;
     }
     
-    /* 5. KIỂU DÁNG THẺ LỊCH SỬ KẾ QUẢ (Đồng bộ Dark Mode) */
+    /* 6. KIỂU DÁNG THẺ LỊCH SỬ KẾ QUẢ (Đồng bộ Dark Mode) */
     .history-card {
         background-color: #1e222b !important;
         border-left: 5px solid #FF4B4B;
@@ -134,8 +142,8 @@ def render_grid_html(keywords, active_idx=None, is_global_spinning=False):
     """
 
 # Giao diện chính của ứng dụng
-st.markdown("<h1 style='text-align: center; color: #FF4B4B;'>🎰 VÒNG QUAY MAY MẮN MULTIPLAYER v8 🎰</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; font-size: 16px; margin-bottom: 30px; color: #cccccc !important;'>Đã khóa cứng giao diện Dark Mode & ẩn nút Menu tùy chọn chuyển màu!</p>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; color: #FF4B4B;'>🎰 VÒNG QUAY MAY MẮN MULTIPLAYER v9 🎰</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; font-size: 16px; margin-bottom: 30px; color: #cccccc !important;'>Hệ thống vòng quay thời gian thực - Cố định giao diện Dark Mode</p>", unsafe_allow_html=True)
 
 # Chia cột chính
 col_left, col_right = st.columns([1, 2])
@@ -150,9 +158,11 @@ with col_left:
     
     if is_locked:
         st.warning("⚠️ Vòng quay đang hoạt động! Chức năng thêm từ khóa tạm thời bị khóa.")
+    else:
+        st.write("Nhập từ khóa mới rồi ấn nút Thêm hoặc phím Enter:")
     
-    # Form nhập (Đã dọn dẹp nhãn phụ dư thừa bằng label_visibility="collapsed")
-    with st.form("add_kw_form", clear_on_submit=True):
+    # Form nhập (Dùng CSS ẩn hoàn toàn khung viền thừa của form và nhãn của text input)
+    with st.form("add_kw_form", clear_on_submit=True, border=False):
         new_kw = st.text_input(
             "Nhập từ khóa mới:", 
             placeholder="Gõ từ khóa tại đây rồi nhấn Thêm...", 
@@ -355,6 +365,8 @@ st.markdown("""
     color: #888888 !important;
     font-size: 14px;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: transparent !important;
+    font-weight: normal !important;
 ">
     © 2026 - Developed by Nobita | Vòng Quay May Mắn Multiplayer
 </div>

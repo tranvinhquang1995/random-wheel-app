@@ -3,7 +3,7 @@ import random
 import time
 
 # Cấu hình giao diện rộng rãi (Wide layout) và tiêu đề trang
-st.set_page_config(page_title="Vòng Quay May Mắn - Multiplayer v12 (Rollback v8)", layout="wide")
+st.set_page_config(page_title="Vòng Quay May Mắn - Multiplayer v13", layout="wide")
 
 # CSS ĐẶC BIỆT: Khóa cứng Dark Mode, ẩn menu cài đặt, nút 3 chấm và footer của Streamlit
 st.markdown("""
@@ -26,7 +26,7 @@ st.markdown("""
         color: #ffffff !important;
     }
 
-    /* 3. THIẾT KẾ CÁC Ô TỪ KHÓA MẶC ĐỊNH (Tông tối gaming) */
+    /* 3. THIẾT KẾ CÁC Ô TÒA MẶC ĐỊNH (Tông tối gaming) */
     .keyword-card {
         padding: 15px;
         margin: 5px;
@@ -63,16 +63,16 @@ st.markdown("""
         to { background-color: #FFD700 !important; transform: scale(1.03); border-color: #FFD700; box-shadow: 0px 4px 10px rgba(255, 215, 0, 0.6); }
     }
     
-    /* 4. HỘP NHẬP TỪ KHÓA BÊN CỘT TRÁI (Tông xám tối) */
-    .input-box {
+    /* 4. HỘP NHẬP TỪ KHÓA BÊN CỘT TRÁI (Thiết kế đè lên lớp Form của Streamlit) */
+    div[data-testid="stForm"] {
         background-color: #1e222b !important;
-        border-radius: 12px;
-        padding: 20px;
-        box-shadow: 0px 4px 12px rgba(0,0,0,0.3);
+        border-radius: 12px !important;
+        padding: 25px !important;
+        box-shadow: 0px 4px 12px rgba(0,0,0,0.3) !important;
         border: 1px solid #3c4048 !important;
     }
     
-    /* 5. KIỂU DÁNG THẺ LỊCH SỬ KẾ QUẢ (Đồng bộ Dark Mode) */
+    /* 5. KIỂU DÁNG THỂ LỊCH SỬ KẾ QUẢ (Đồng bộ Dark Mode) */
     .history-card {
         background-color: #1e222b !important;
         border-left: 5px solid #FF4B4B;
@@ -134,25 +134,26 @@ def render_grid_html(keywords, active_idx=None, is_global_spinning=False):
     """
 
 # Giao diện chính của ứng dụng
-st.markdown("<h1 style='text-align: center; color: #FF4B4B;'>🎰 VÒNG QUAY MAY MẮN MULTIPLAYER v12 (v8 Rollback) 🎰</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; font-size: 16px; margin-bottom: 30px; color: #cccccc !important;'>Đã rollback về kiến trúc v8 ổn định, tích hợp Copyright Nobita!</p>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; color: #FF4B4B;'>🎰 VÒNG QUAY MAY MẮN MULTIPLAYER 🎰</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; font-size: 16px; margin-bottom: 30px; color: #cccccc !important;'>Mọi người truy cập cùng một link đều có thể thêm từ khóa và xem kết quả quay trực tiếp theo thời gian thực!</p>", unsafe_allow_html=True)
 
 # Chia cột chính
 col_left, col_right = st.columns([1, 2])
 
 # CỘT TRÁI: NHẬP TỪ KHÓA
 with col_left:
-    st.markdown("<div class='input-box'>", unsafe_allow_html=True)
-    st.subheader("📝 Thêm Từ Khóa")
-    
     # Kiểm tra trạng thái quay toàn cục để khóa ô nhập
     is_locked = shared.is_spinning
     
-    if is_locked:
-        st.warning("⚠️ Vòng quay đang hoạt động! Chức năng thêm từ khóa tạm thời bị khóa.")
-    
-    # Form nhập (Đã dọn dẹp nhãn phụ dư thừa bằng label_visibility="collapsed")
+    # Sử dụng st.form làm hộp chứa duy nhất để triệt tiêu hoàn toàn khung viền thừa bên ngoài
     with st.form("add_kw_form", clear_on_submit=True):
+        st.markdown("<h3 style='margin-top: 0;'>📝 Thêm Từ Khóa</h3>", unsafe_allow_html=True)
+        
+        if is_locked:
+            st.warning("⚠️ Vòng quay đang hoạt động! Chức năng thêm từ khóa tạm thời bị khóa.")
+        else:
+            st.markdown("<p style='font-size: 14px; color: #cccccc !important;'>Nhập từ khóa mới rồi ấn nút Thêm hoặc phím Enter:</p>", unsafe_allow_html=True)
+        
         new_kw = st.text_input(
             "Nhập từ khóa mới:", 
             placeholder="Gõ từ khóa tại đây rồi nhấn Thêm...", 
@@ -160,11 +161,13 @@ with col_left:
             disabled=is_locked,
             label_visibility="collapsed"
         )
+        
         submit_btn = st.form_submit_button(
             "➕ Thêm vào danh sách", 
             use_container_width=True,
             disabled=is_locked
         )
+        
         if submit_btn and new_kw.strip():
             val = new_kw.strip()
             if val not in shared.keywords:
@@ -173,7 +176,6 @@ with col_left:
                 st.rerun()
             else:
                 st.warning("Từ khóa này đã tồn tại trong danh sách!")
-    st.markdown("</div>", unsafe_allow_html=True)
 
 # CỘT PHẢI: HIỂN THỊ DANH SÁCH LIVESYNC, VÒNG QUAY & LÌCH SỬ (Tự động cập nhật qua Fragment)
 with col_right:
@@ -225,7 +227,7 @@ with col_right:
                 
         # 3. Khu vực Vòng Quay May Mắn chính giữa
         with col_wheel:
-            st.markdown("<h3 style='margin-top:0;'>🎯 Trạng Thái Vòng Quay</h3>", unsafe_allow_html=True)
+            st.markdown("<h3 style='margin-top:0;'>🎯 Trạng Thế Vòng Quay</h3>", unsafe_allow_html=True)
             grid_placeholder = st.empty()
             
             # Giao diện vòng quay theo trạng thái

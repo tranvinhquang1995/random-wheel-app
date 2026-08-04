@@ -3,7 +3,7 @@ import random
 import time
 
 # Cấu hình giao diện rộng rãi (Wide layout) và tiêu đề trang
-st.set_page_config(page_title="Vòng Quay May Mắn - Multiplayer v10", layout="wide")
+st.set_page_config(page_title="Vòng Quay May Mắn - Multiplayer v11", layout="wide")
 
 # CSS ĐẶC BIỆT: Khóa cứng Dark Mode, ẩn menu cài đặt, nút 3 chấm và footer của Streamlit
 st.markdown("""
@@ -134,8 +134,8 @@ def render_grid_html(keywords, active_idx=None, is_global_spinning=False):
     """
 
 # Giao diện chính của ứng dụng
-st.markdown("<h1 style='text-align: center; color: #FF4B4B;'>🎰 VÒNG QUAY MAY MẮN MULTIPLAYER v10 🎰</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; font-size: 16px; margin-bottom: 30px; color: #cccccc !important;'>Đã khóa cứng giao diện Dark Mode & dọn dẹp hoàn toàn viền hộp thừa!</p>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; color: #FF4B4B;'>🎰 VÒNG QUAY MAY MẮN MULTIPLAYER v11 🎰</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; font-size: 16px; margin-bottom: 30px; color: #cccccc !important;'>Đã tối giản hóa hoàn toàn ô nhập liệu và sửa lỗi cache trình duyệt!</p>", unsafe_allow_html=True)
 
 # Chia cột chính
 col_left, col_right = st.columns([1, 2])
@@ -150,8 +150,6 @@ with col_left:
     
     if is_locked:
         st.warning("⚠️ Vòng quay đang hoạt động! Chức năng thêm từ khóa tạm thời bị khóa.")
-    else:
-        st.write("Nhập từ khóa mới rồi ấn Enter hoặc nút Thêm:")
 
     # Hàm callback xử lý thêm từ khóa không cần st.form
     def handle_add():
@@ -166,13 +164,12 @@ with col_left:
                 # Xóa sạch text trong ô sau khi xử lý thành công
                 st.session_state["add_kw_input"] = ""
 
-    # Ô nhập liệu phẳng (Sử dụng callback trực tiếp, KHÔNG dùng st.form để triệt tiêu hoàn toàn viền xám thừa)
+    # DÙNG LABEL TRỐNG "" ĐỂ TRÁNH LỖI PHÁT SINH BẢN STREAMLIT CŨ KHÔNG HỖ TRỢ COLLAPSED
     st.text_input(
-        "Nhập từ khóa mới:", 
-        placeholder="Gõ từ khóa tại đây...", 
+        label="", 
+        placeholder="Gõ từ khóa tại đây rồi nhấn Enter...", 
         key="add_kw_input",
         disabled=is_locked,
-        label_visibility="collapsed",
         on_change=handle_add
     )
     

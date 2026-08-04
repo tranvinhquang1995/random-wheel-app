@@ -3,7 +3,7 @@ import random
 import time
 
 # Cấu hình giao diện rộng rãi (Wide layout) và tiêu đề trang
-st.set_page_config(page_title="Vòng Quay May Mắn - Multiplayer v7", layout="wide")
+st.set_page_config(page_title="Vòng Quay May Mắn - Multiplayer v8", layout="wide")
 
 # CSS ĐẶC BIỆT: Khóa cứng Dark Mode, ẩn menu cài đặt, nút 3 chấm và footer của Streamlit
 st.markdown("""
@@ -134,7 +134,7 @@ def render_grid_html(keywords, active_idx=None, is_global_spinning=False):
     """
 
 # Giao diện chính của ứng dụng
-st.markdown("<h1 style='text-align: center; color: #FF4B4B;'>🎰 VÒNG QUAY MAY MẮN MULTIPLAYER v7 🎰</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; color: #FF4B4B;'>🎰 VÒNG QUAY MAY MẮN MULTIPLAYER v8 🎰</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center; font-size: 16px; margin-bottom: 30px; color: #cccccc !important;'>Đã khóa cứng giao diện Dark Mode & ẩn nút Menu tùy chọn chuyển màu!</p>", unsafe_allow_html=True)
 
 # Chia cột chính
@@ -150,16 +150,15 @@ with col_left:
     
     if is_locked:
         st.warning("⚠️ Vòng quay đang hoạt động! Chức năng thêm từ khóa tạm thời bị khóa.")
-    else:
-        st.write("Nhập từ khóa mới rồi ấn nút Thêm hoặc phím Enter:")
     
-    # Form nhập
+    # Form nhập (Đã dọn dẹp nhãn phụ dư thừa bằng label_visibility="collapsed")
     with st.form("add_kw_form", clear_on_submit=True):
         new_kw = st.text_input(
             "Nhập từ khóa mới:", 
-            placeholder="Ví dụ: Huawei, Nokia...", 
+            placeholder="Gõ từ khóa tại đây rồi nhấn Thêm...", 
             key="add_kw_input",
-            disabled=is_locked
+            disabled=is_locked,
+            label_visibility="collapsed"
         )
         submit_btn = st.form_submit_button(
             "➕ Thêm vào danh sách", 
@@ -345,3 +344,18 @@ if "show_winner" in st.session_state:
     time.sleep(3)
     del st.session_state["show_winner"]
     st.rerun()
+
+# 4. KHUNG FOOTER COPYRIGHT CHUYÊN NGHIỆP
+st.markdown("""
+<div style="
+    text-align: center;
+    margin-top: 80px;
+    padding: 20px;
+    border-top: 1px solid #3c4048;
+    color: #888888 !important;
+    font-size: 14px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+">
+    © 2026 - Developed by Nobita | Vòng Quay May Mắn Multiplayer
+</div>
+""", unsafe_allow_html=True)

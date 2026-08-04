@@ -3,37 +3,43 @@ import random
 import time
 
 # Cấu hình giao diện rộng rãi (Wide layout) và tiêu đề trang
-st.set_page_config(page_title="Vòng Quay May Mắn - Multiplayer v6", layout="wide")
+st.set_page_config(page_title="Vòng Quay May Mắn - Multiplayer v7", layout="wide")
 
-# CSS ĐẶC BIỆT: Ép buộc toàn bộ ứng dụng chạy chế độ Dark Theme (Giao diện tối kiểu Gaming)
+# CSS ĐẶC BIỆT: Khóa cứng Dark Mode, ẩn menu cài đặt, nút 3 chấm và footer của Streamlit
 st.markdown("""
 <style>
-    /* 1. Ép buộc màu nền toàn trang sang màu tối */
-    [data-testid="stAppViewContainer"] {
+    /* 1. ẨN HOÀN TOÀN MENU BA CHẤM (SETTINGS) VÀ FOOTER ĐỂ NGƯỜI DÙNG KHÔNG THỂ CHUYỂN CHẾ ĐỘ */
+    #MainMenu {visibility: hidden; display: none !important;}
+    header {visibility: hidden; display: none !important;}
+    footer {visibility: hidden; display: none !important;}
+    div[data-testid="stToolbar"] {visibility: hidden; display: none !important;}
+    div[data-testid="stDecoration"] {display: none !important;}
+    
+    /* 2. ÉP BUỘC TOÀN BỘ NỀN TRANG CHÍNH VÀ CHỮ SANG TÔNG TỐI (DARK MODE) */
+    html, body, [data-testid="stAppViewContainer"] {
         background-color: #0e1117 !important;
         color: #ffffff !important;
     }
     
-    /* 2. Cố định chữ màu trắng sáng cho tất cả thẻ text thông thường */
-    h1, h2, h3, h4, p, span, label {
+    /* Đồng bộ màu chữ cho các tiêu đề lớn */
+    h1, h2, h3, p, span, label, .stMarkdown {
         color: #ffffff !important;
     }
-    
-    /* 3. Kiểu dáng cho các ô từ khóa mặc định */
+
+    /* 3. THIẾT KẾ CÁC Ô TỪ KHÓA MẶC ĐỊNH (Tông tối gaming) */
     .keyword-card {
         padding: 15px;
         margin: 5px;
         border-radius: 10px;
-        border: 2px solid #2e3440;
+        border: 2px solid #3c4048;
         font-size: 16px;
         font-weight: bold;
         text-align: center;
-        background-color: #1e222b;
+        background-color: #1e222b !important;
         color: #ffffff !important;
         transition: all 0.1s ease-in-out;
     }
-    
-    /* 4. Kiểu dáng cho ô từ khóa đang được chọn/nhấp nháy khi quay */
+    /* Kiểu dáng cho ô từ khóa đang được chọn/nhấp nháy khi quay (Đỏ Neon rực rỡ) */
     .keyword-card-active {
         padding: 15px;
         margin: 5px;
@@ -42,43 +48,31 @@ st.markdown("""
         font-size: 16px;
         font-weight: bold;
         text-align: center;
-        background-color: #FF4B4B;
+        background-color: #FF4B4B !important;
         color: #ffffff !important;
         transform: scale(1.08);
-        box-shadow: 0px 4px 15px rgba(255, 75, 75, 0.6);
+        box-shadow: 0px 4px 15px rgba(255, 75, 75, 0.8);
         transition: all 0.05s ease-in-out;
     }
-    
-    /* 5. Hiệu ứng nhấp nháy màu vàng dành cho người xem khác khi vòng quay đang chạy */
+    /* Hiệu ứng nhấp nháy màu vàng dành cho người xem khác khi vòng quay đang chạy */
     .keyword-card-spinning {
         animation: pulse-spin 0.6s infinite alternate;
     }
     @keyframes pulse-spin {
-        from { 
-            background-color: #1e222b; 
-            transform: scale(1); 
-            border-color: #2e3440; 
-            color: #ffffff !important; 
-        }
-        to { 
-            background-color: #FFD700; 
-            transform: scale(1.03); 
-            border-color: #FFD700; 
-            color: #111111 !important; 
-            box-shadow: 0px 4px 10px rgba(255, 215, 0, 0.4); 
-        }
+        from { background-color: #1e222b !important; transform: scale(1); border-color: #3c4048; }
+        to { background-color: #FFD700 !important; transform: scale(1.03); border-color: #FFD700; box-shadow: 0px 4px 10px rgba(255, 215, 0, 0.6); }
     }
     
-    /* 6. Hộp nhập từ khóa bên cột trái */
+    /* 4. HỘP NHẬP TỪ KHÓA BÊN CỘT TRÁI (Tông xám tối) */
     .input-box {
         background-color: #1e222b !important;
         border-radius: 12px;
         padding: 20px;
-        box-shadow: 0px 4px 12px rgba(0,0,0,0.4);
-        border: 1px solid #2e3440;
+        box-shadow: 0px 4px 12px rgba(0,0,0,0.3);
+        border: 1px solid #3c4048 !important;
     }
     
-    /* 7. Kiểu dáng thẻ lịch sử kết quả */
+    /* 5. KIỂU DÁNG THẺ LỊCH SỬ KẾ QUẢ (Đồng bộ Dark Mode) */
     .history-card {
         background-color: #1e222b !important;
         border-left: 5px solid #FF4B4B;
@@ -87,7 +81,10 @@ st.markdown("""
         border-radius: 4px;
         font-weight: bold;
         color: #ffffff !important;
-        box-shadow: 0px 2px 4px rgba(0,0,0,0.3);
+        border-top: 1px solid #3c4048;
+        border-right: 1px solid #3c4048;
+        border-bottom: 1px solid #3c4048;
+        box-shadow: 0px 2px 4px rgba(0,0,0,0.2);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -114,7 +111,7 @@ if "seen_spin_id" not in st.session_state:
 # Hàm sinh HTML lưới ô chứa các từ khóa
 def render_grid_html(keywords, active_idx=None, is_global_spinning=False):
     if not keywords:
-        return "<div style='text-align: center; color: #888888; padding: 20px;'>Chưa có từ khóa nào được nhập. Hãy nhập từ khóa ở bảng bên trái!</div>"
+        return "<div style='text-align: center; color: #888; padding: 20px;'>Chưa có từ khóa nào được nhập. Hãy nhập từ khóa ở bảng bên trái!</div>"
     
     cols_html = ""
     for idx, kw in enumerate(keywords):
@@ -137,10 +134,10 @@ def render_grid_html(keywords, active_idx=None, is_global_spinning=False):
     """
 
 # Giao diện chính của ứng dụng
-st.markdown("<h1 style='text-align: center; color: #FF4B4B;'>🎰 VÒNG QUAY MAY MẮN MULTIPLAYER 🎰</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; font-size: 16px; margin-bottom: 30px; color: #cccccc !important;'>Giao diện tối (Dark Mode) cố định - Trải nghiệm chuyên nghiệp & đồng bộ tức thì!</p>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; color: #FF4B4B;'>🎰 VÒNG QUAY MAY MẮN MULTIPLAYER v7 🎰</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; font-size: 16px; margin-bottom: 30px; color: #cccccc !important;'>Đã khóa cứng giao diện Dark Mode & ẩn nút Menu tùy chọn chuyển màu!</p>", unsafe_allow_html=True)
 
-# Chia cột chính (Cột trái để nhập liệu, Cột phải rộng rãi để hiển thị vòng quay)
+# Chia cột chính
 col_left, col_right = st.columns([1, 2])
 
 # CỘT TRÁI: NHẬP TỪ KHÓA
@@ -148,24 +145,26 @@ with col_left:
     st.markdown("<div class='input-box'>", unsafe_allow_html=True)
     st.subheader("📝 Thêm Từ Khóa")
     
-    # Kiểm tra trạng thái quay để vô hiệu hóa form nhập
-    is_spinning_now = shared.is_spinning
+    # Kiểm tra trạng thái quay toàn cục để khóa ô nhập
+    is_locked = shared.is_spinning
     
-    if is_spinning_now:
-        st.warning("⚠️ Vòng quay đang hoạt động! Chức năng thêm từ khóa tạm thời bị khóa...")
-        
-    # Form nhập để tự động xóa nội dung sau khi nhấn gửi
+    if is_locked:
+        st.warning("⚠️ Vòng quay đang hoạt động! Chức năng thêm từ khóa tạm thời bị khóa.")
+    else:
+        st.write("Nhập từ khóa mới rồi ấn nút Thêm hoặc phím Enter:")
+    
+    # Form nhập
     with st.form("add_kw_form", clear_on_submit=True):
         new_kw = st.text_input(
             "Nhập từ khóa mới:", 
             placeholder="Ví dụ: Huawei, Nokia...", 
-            key="add_kw_input", 
-            disabled=is_spinning_now
+            key="add_kw_input",
+            disabled=is_locked
         )
         submit_btn = st.form_submit_button(
             "➕ Thêm vào danh sách", 
-            use_container_width=True, 
-            disabled=is_spinning_now
+            use_container_width=True,
+            disabled=is_locked
         )
         if submit_btn and new_kw.strip():
             val = new_kw.strip()
@@ -177,13 +176,10 @@ with col_left:
                 st.warning("Từ khóa này đã tồn tại trong danh sách!")
     st.markdown("</div>", unsafe_allow_html=True)
 
-# CỘT PHẢI: HIỂN THỊ DANH SÁCH LIVESYNC, VÒNG QUAY & LỊCH SỬ (Tự động cập nhật qua Fragment)
+# CỘT PHẢI: HIỂN THỊ DANH SÁCH LIVESYNC, VÒNG QUAY & LÌCH SỬ (Tự động cập nhật qua Fragment)
 with col_right:
     @st.fragment(run_every=1.5)
     def render_live_area():
-        # Kiểm tra trạng thái quay toàn cục
-        is_spinning_now = shared.is_spinning
-        
         # Kiểm tra xem có kết quả quay mới từ người dùng khác không để kích hoạt popup đồng bộ
         if shared.last_spin:
             last_id = shared.last_spin["id"]
@@ -196,6 +192,7 @@ with col_right:
 
         # Chia cột nhỏ bên trong vùng fragment
         col_kw_list, col_wheel, col_hist = st.columns([1, 1.8, 0.9])
+        is_locked = shared.is_spinning
         
         # 1. Danh sách từ khóa trực quan (Cập nhật trực tiếp khi người khác thêm/xóa)
         with col_kw_list:
@@ -205,18 +202,16 @@ with col_right:
             else:
                 for idx, kw in enumerate(shared.keywords):
                     col_item_text, col_item_btn = st.columns([4, 1])
-                    # Hiển thị từ khóa dạng khối bo góc gọn gàng màu tối chữ trắng sáng
-                    col_item_text.markdown(
-                        f"<div style='padding: 6px; background: #262730; border-radius: 5px; font-weight: bold; font-size:14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; color: #ffffff !important;'>{kw}</div>", 
-                        unsafe_allow_html=True
-                    )
+                    # Hiển thị từ khóa dạng khối bo góc tông tối cực ngầu
+                    col_item_text.markdown(f"<div style='padding: 6px; background: #1e222b; border: 1px solid #3c4048; border-radius: 5px; font-weight: bold; font-size:14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; color: #ffffff !important;'>{kw}</div>", unsafe_allow_html=True)
                     # Nút xóa nhanh từ khóa đó (Bị khóa khi đang quay)
-                    if col_item_btn.button("❌", key=f"del_{idx}_{kw}", disabled=is_spinning_now):
+                    if col_item_btn.button("❌", key=f"del_{idx}_{kw}", disabled=is_locked):
                         shared.keywords.pop(idx)
                         st.rerun()
                 
+                st.write("")
                 # Nút dọn dẹp sạch danh sách (Bị khóa khi đang quay)
-                if st.button("🗑️ Xóa tất cả", use_container_width=True, key="clear_all", disabled=is_spinning_now):
+                if st.button("🗑️ Xóa tất cả", use_container_width=True, key="clear_all", disabled=is_locked):
                     shared.keywords = []
                     st.rerun()
                     
@@ -235,7 +230,7 @@ with col_right:
             grid_placeholder = st.empty()
             
             # Giao diện vòng quay theo trạng thái
-            if is_spinning_now:
+            if shared.is_spinning:
                 # Những người dùng khác đang xem sẽ thấy các ô chuyển động nhấp nháy màu vàng
                 grid_placeholder.markdown(render_grid_html(shared.keywords, is_global_spinning=True), unsafe_allow_html=True)
                 st.warning("🎰 Đang có người quay thưởng! Hãy hồi hộp theo dõi...")
@@ -296,33 +291,33 @@ with col_right:
 
     render_live_area()
 
-# 3. HIỂN THỊ POPUP THÔNG BÁO CHIẾN THẮNG (Tối ưu tuyệt đối màu sắc Dark Theme)
+# 3. HIỂN THỊ POPUP THÔNG BÁO CHIẾN THẮNG (Tự động tắt sau 3 giây)
 if "show_winner" in st.session_state:
     winner = st.session_state["show_winner"]
     st.balloons()  # Hiệu ứng bong bóng bay chúc mừng toàn màn hình
     
-    # Hộp thông báo Modal Overlay đè lên giao diện chính - ĐÃ CHỈNH MÀU SẮC ĐỂ KHÔNG BỊ TRÙNG MÀU CHỮ TRẮNG
+    # Hộp thông báo Modal Overlay đè lên giao diện chính màu tối cực ngầu
     st.markdown(f"""
     <div style="
         position: fixed;
         top: 30%;
         left: 50%;
         transform: translate(-50%, -50%);
-        background-color: #1a1c23 !important;
+        background-color: #1a1c23;
         padding: 30px 40px;
         border-radius: 16px;
-        box-shadow: 0px 12px 40px rgba(0,0,0,0.8);
+        box-shadow: 0px 12px 40px rgba(0,0,0,0.6);
         z-index: 10000;
         text-align: center;
         border: 4px solid #FF4B4B;
         width: 480px;
     ">
-        <h2 style="color: #FF4B4B !important; margin-top: 0; font-size: 32px; letter-spacing: 1px; font-weight: bold;">🎉 CHÚC MỪNG! 🎉</h2>
+        <h2 style="color: #FF4B4B !important; margin-top: 0; font-size: 32px; letter-spacing: 1px;">🎉 CHÚC MỪNG! 🎉</h2>
         <p style="font-size: 18px; color: #cccccc !important; margin-bottom: 5px;">Kết quả may mắn nhận được là:</p>
-        <p style="font-size: 38px; font-weight: bold; color: #FFD700 !important; margin: 15px 0; border-bottom: 2px dashed #2e3440; padding-bottom: 15px;">{winner}</p>
+        <p style="font-size: 36px; font-weight: bold; color: #FFD700 !important; margin: 15px 0; border-bottom: 2px dashed #3c4048; padding-bottom: 15px;">{winner}</p>
         <div style="
             width: 100%;
-            background-color: #2e3440;
+            background-color: #2b303c;
             border-radius: 10px;
             height: 6px;
             margin-top: 20px;

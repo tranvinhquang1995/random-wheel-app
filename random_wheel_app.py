@@ -3,7 +3,7 @@ import random
 import time
 
 # Cấu hình giao diện rộng rãi (Wide layout) và tiêu đề trang
-st.set_page_config(page_title="Vòng Quay May Mắn - Multiplayer Random Wheel", layout="wide")
+st.set_page_config(page_title="Vòng Quay May Mắn - Multiplayer v2", layout="wide")
 
 # CSS để tùy chỉnh giao diện đẹp mắt
 st.markdown("""
@@ -73,7 +73,6 @@ class SharedAppState:
         self.is_spinning = False
         self.current_spin_id = 0
         self.last_spin = None  # Lưu: {"id": spin_id, "winner": winner, "timestamp": time.time()}
-        self.num_inputs = 10
 
 @st.cache_resource
 def get_shared_state():
@@ -88,7 +87,7 @@ if "seen_spin_id" not in st.session_state:
 # Hàm sinh HTML lưới ô chứa các từ khóa
 def render_grid_html(keywords, active_idx=None, is_global_spinning=False):
     if not keywords:
-        return "<div style='text-align: center; color: #888; padding: 20px;'>Chưa có từ khóa nào được nhập.</div>"
+        return "<div style='text-align: center; color: #888; padding: 20px;'>Chưa có từ khóa nào được nhập. Hãy nhập từ khóa ở bảng bên trái!</div>"
     
     cols_html = ""
     for idx, kw in enumerate(keywords):
@@ -111,55 +110,36 @@ def render_grid_html(keywords, active_idx=None, is_global_spinning=False):
     """
 
 # Giao diện chính của ứng dụng
-st.markdown("<h1 style='text-align: center; color: #FF4B4B;'>🎰 VÒNG QUAY MAY MẮN MULTIPLAYER 🎰</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; font-size: 16px; margin-bottom: 30px;'>Mọi người truy cập cùng một link đều có thể thêm từ khóa và xem kết quả quay trực tiếp theo thời gian thực!</p>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; color: #FF4B4B;'>🎰 VÒNG QUAY MAY MẮN MULTIPLAYER v2 🎰</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; font-size: 16px; margin-bottom: 30px;'>Giải pháp đồng bộ hóa hoàn hảo: Nhập không bị trùng lặp, cập nhật tức thì!</p>", unsafe_allow_html=True)
 
-# Chia cột
+# Chia cột chính (Cột trái nhỏ gọn để nhập liệu, Cột phải rộng rãi để hiển thị chính)
 col_left, col_right = st.columns([1, 2])
 
-# CỘT TRÁI: NHẬP TỪ KHÓA
+# CỘT TRÁI: NHẬP TỪ KHÓA (Nằm ngoài Fragment để người dùng gõ chữ KHÔNG bị mất focus khi trang tự reload)
 with col_left:
     st.markdown("<div class='input-box'>", unsafe_allow_html=True)
-    st.subheader("📝 Danh Sách Từ Khóa")
-    st.write("Nhập từ khóa vào các ô bên dưới:")
+    st.subheader("📝 Thêm Từ Khóa")
+    st.write("Nhập từ khóa mới rồi ấn nút Thêm hoặc phím Enter:")
     
-    temp_keywords = []
-    
-    # Tạo các ô nhập từ khóa động dựa trên số lượng được thiết lập
-    for i in range(shared.num_inputs):
-        default_val = shared.keywords[i] if i < len(shared.keywords) else ""
-        user_input = st.text_input(f"Ô nhập #{i+1}", value=default_val, key=f"input_kw_{i}")
-        if user_input.strip():
-            temp_keywords.append(user_input.strip())
-            
-    # Cập nhật danh sách chung khi có bất kì ô nào thay đổi
-    if temp_keywords != shared.keywords:
-        shared.keywords = temp_keywords
-        
-    st.write(f"👉 Số từ khóa hợp lệ: **{len(shared.keywords)}**")
-    
-    # Nút bấm tăng thêm ô nhập hoặc xóa nhanh
-    col_btn1, col_btn2 = st.columns(2)
-    with col_btn1:
-        if st.button("➕ Thêm 5 ô nhập", use_container_width=True):
-            shared.num_inputs += 5
-            st.rerun()
-    with col_btn2:
-        if st.button("🗑️ Xóa tất cả", use_container_width=True):
-            shared.keywords = []
-            for i in range(shared.num_inputs):
-                if f"input_kw_{i}" in st.session_state:
-                    st.session_state[f"input_kw_{i}"] = ""
-            st.rerun()
-            
+    # Form nhập để tự động xóa nội dung sau khi nhấn gửi thành công
+    with st.form("add_kw_form", clear_on_submit=True):
+        new_kw = st.text_input("Nhập từ khóa mới:", placeholder="Ví dụ: Huawei, Nokia...", key="add_kw_input")
+        submit_btn = st.form_submit_button("➕ Thêm vào danh sách", use_container_width=True)
+        if submit_btn and new_kw.strip():
+            val = new_kw.strip()
+            if val not in shared.keywords:
+                shared.keywords.append(val)
+                st.toast(f"Đã thêm từ khóa: {val}")
+                st.rerun()
+            else:
+                st.warning("Từ khóa này đã tồn tại trong danh sách!")
     st.markdown("</div>", unsafe_allow_html=True)
 
-# CỘT PHẢI: HIỂN THỊ VÒNG QUAY & LỊCH SỬ (Được cập nhật tự động bằng Fragment)
+# CỘT PHẢI: HIỂN THỊ DANH SÁCH LIVESYNC, VÒNG QUAY & LÌCH SỬ (Tự động cập nhật qua Fragment)
 with col_right:
     @st.fragment(run_every=1.5)
-    def render_right_side():
-        col_main, col_hist = st.columns([2.5, 1])
-        
+    def render_live_area():
         # Kiểm tra xem có kết quả quay mới từ người dùng khác không để kích hoạt popup đồng bộ
         if shared.last_spin:
             last_id = shared.last_spin["id"]
@@ -170,35 +150,58 @@ with col_right:
                 st.session_state["seen_spin_id"] = last_id
                 st.rerun()
 
-        # Hiển thị lịch sử góc trên bên phải
+        # Chia cột nhỏ bên trong vùng fragment
+        col_kw_list, col_wheel, col_hist = st.columns([1, 1.8, 0.9])
+        
+        # 1. Danh sách từ khóa trực quan (Cập nhật trực tiếp khi người khác thêm/xóa)
+        with col_kw_list:
+            st.markdown("### 📋 Từ Khóa Hiện Tại")
+            if not shared.keywords:
+                st.info("Danh sách trống. Vui lòng thêm từ khóa!")
+            else:
+                for idx, kw in enumerate(shared.keywords):
+                    col_item_text, col_item_btn = st.columns([4, 1])
+                    # Hiển thị từ khóa dạng khối bo góc gọn gàng
+                    col_item_text.markdown(f"<div style='padding: 6px; background: #f0f2f6; border-radius: 5px; font-weight: bold; font-size:14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;'>{kw}</div>", unsafe_allow_html=True)
+                    # Nút xóa nhanh từ khóa đó
+                    if col_item_btn.button("❌", key=f"del_{idx}_{kw}"):
+                        shared.keywords.pop(idx)
+                        st.rerun()
+                
+                st.write("")
+                # Nút dọn dẹp sạch danh sách
+                if st.button("🗑️ Xóa tất cả", use_container_width=True, key="clear_all"):
+                    shared.keywords = []
+                    st.rerun()
+                    
+        # 2. Khung lịch sử góc trên bên phải
         with col_hist:
             st.markdown("<h3 style='margin-top:0;'>🕒 Lịch Sử</h3>", unsafe_allow_html=True)
-            st.write("5 lượt quay gần nhất:")
             if shared.history:
                 for idx, winner_item in enumerate(shared.history[:5]):
                     st.markdown(f"<div class='history-card'>#{idx+1}: {winner_item}</div>", unsafe_allow_html=True)
             else:
                 st.info("Chưa có lượt quay.")
-
-        # Hiển thị vòng quay chữ nhật chính giữa bên phải
-        with col_main:
+                
+        # 3. Khu vực Vòng Quay May Mắn chính giữa
+        with col_wheel:
             st.markdown("<h3 style='margin-top:0;'>🎯 Trạng Thái Vòng Quay</h3>", unsafe_allow_html=True)
             grid_placeholder = st.empty()
             
-            # Cấu hình hiển thị theo trạng thái quay
+            # Giao diện vòng quay theo trạng thái
             if shared.is_spinning:
                 # Những người dùng khác đang xem sẽ thấy các ô chuyển động nhấp nháy màu vàng
                 grid_placeholder.markdown(render_grid_html(shared.keywords, is_global_spinning=True), unsafe_allow_html=True)
                 st.warning("🎰 Đang có người quay thưởng! Hãy hồi hộp theo dõi...")
-                st.button("🚀 ĐANG QUAY...", use_container_width=True, disabled=True)
+                st.button("🚀 ĐANG QUAY...", use_container_width=True, disabled=True, key="spin_disabled_btn")
             else:
                 # Trạng thái tĩnh bình thường
                 grid_placeholder.markdown(render_grid_html(shared.keywords), unsafe_allow_html=True)
-                spin_btn = st.button("🚀 BẮT ĐẦU QUAY NGẪU NHIÊN", use_container_width=True)
+                spin_btn = st.button("🚀 BẮT ĐẦU QUAY NGẪU NHIÊN", use_container_width=True, key="active_spin_btn")
                 
                 if spin_btn:
                     if len(shared.keywords) < 2:
-                        st.error("❌ Vui lòng nhập ít nhất 2 từ khóa ở cột bên trái để quay thưởng!")
+                        st.error("❌ Vui lòng có ít nhất 2 từ khóa để quay thưởng!")
                     else:
                         # Bắt đầu quy trình quay
                         shared.is_spinning = True
@@ -245,7 +248,7 @@ with col_right:
                         st.session_state["seen_spin_id"] = new_spin_id
                         st.rerun()
 
-    render_right_side()
+    render_live_area()
 
 # 3. HIỂN THỊ POPUP THÔNG BÁO CHIẾN THẮNG (Tự động tắt sau 3 giây)
 if "show_winner" in st.session_state:

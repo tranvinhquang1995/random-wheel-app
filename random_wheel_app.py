@@ -3,7 +3,7 @@ import random
 import time
 
 # Cấu hình giao diện rộng rãi (Wide layout) và tiêu đề trang
-st.set_page_config(page_title="Vòng Quay May Mắn - Multiplayer v11", layout="wide")
+st.set_page_config(page_title="Vòng Quay May Mắn - Multiplayer v12 (Rollback v8)", layout="wide")
 
 # CSS ĐẶC BIỆT: Khóa cứng Dark Mode, ẩn menu cài đặt, nút 3 chấm và footer của Streamlit
 st.markdown("""
@@ -134,8 +134,8 @@ def render_grid_html(keywords, active_idx=None, is_global_spinning=False):
     """
 
 # Giao diện chính của ứng dụng
-st.markdown("<h1 style='text-align: center; color: #FF4B4B;'>🎰 VÒNG QUAY MAY MẮN MULTIPLAYER v11 🎰</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; font-size: 16px; margin-bottom: 30px; color: #cccccc !important;'>Đã tối giản hóa hoàn toàn ô nhập liệu và sửa lỗi cache trình duyệt!</p>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; color: #FF4B4B;'>🎰 VÒNG QUAY MAY MẮN MULTIPLAYER v12 (v8 Rollback) 🎰</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; font-size: 16px; margin-bottom: 30px; color: #cccccc !important;'>Đã rollback về kiến trúc v8 ổn định, tích hợp Copyright Nobita!</p>", unsafe_allow_html=True)
 
 # Chia cột chính
 col_left, col_right = st.columns([1, 2])
@@ -150,34 +150,29 @@ with col_left:
     
     if is_locked:
         st.warning("⚠️ Vòng quay đang hoạt động! Chức năng thêm từ khóa tạm thời bị khóa.")
-
-    # Hàm callback xử lý thêm từ khóa không cần st.form
-    def handle_add():
-        if "add_kw_input" in st.session_state:
-            val = st.session_state["add_kw_input"].strip()
-            if val:
-                if val not in shared.keywords:
-                    shared.keywords.append(val)
-                    st.toast(f"Đã thêm từ khóa: {val}")
-                else:
-                    st.warning("Từ khóa này đã tồn tại trong danh sách!")
-                # Xóa sạch text trong ô sau khi xử lý thành công
-                st.session_state["add_kw_input"] = ""
-
-    # DÙNG LABEL TRỐNG "" ĐỂ TRÁNH LỖI PHÁT SINH BẢN STREAMLIT CŨ KHÔNG HỖ TRỢ COLLAPSED
-    st.text_input(
-        label="", 
-        placeholder="Gõ từ khóa tại đây rồi nhấn Enter...", 
-        key="add_kw_input",
-        disabled=is_locked,
-        on_change=handle_add
-    )
     
-    # Nút thêm thủ công (gọi callback trực tiếp)
-    if st.button("➕ Thêm vào danh sách", use_container_width=True, disabled=is_locked, key="add_btn_manual"):
-        handle_add()
-        st.rerun()
-
+    # Form nhập (Đã dọn dẹp nhãn phụ dư thừa bằng label_visibility="collapsed")
+    with st.form("add_kw_form", clear_on_submit=True):
+        new_kw = st.text_input(
+            "Nhập từ khóa mới:", 
+            placeholder="Gõ từ khóa tại đây rồi nhấn Thêm...", 
+            key="add_kw_input",
+            disabled=is_locked,
+            label_visibility="collapsed"
+        )
+        submit_btn = st.form_submit_button(
+            "➕ Thêm vào danh sách", 
+            use_container_width=True,
+            disabled=is_locked
+        )
+        if submit_btn and new_kw.strip():
+            val = new_kw.strip()
+            if val not in shared.keywords:
+                shared.keywords.append(val)
+                st.toast(f"Đã thêm từ khóa: {val}")
+                st.rerun()
+            else:
+                st.warning("Từ khóa này đã tồn tại trong danh sách!")
     st.markdown("</div>", unsafe_allow_html=True)
 
 # CỘT PHẢI: HIỂN THỊ DANH SÁCH LIVESYNC, VÒNG QUAY & LÌCH SỬ (Tự động cập nhật qua Fragment)
@@ -360,7 +355,6 @@ st.markdown("""
     color: #888888 !important;
     font-size: 14px;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: transparent;
 ">
     © 2026 - Developed by Nobita | Vòng Quay May Mắn Multiplayer
 </div>

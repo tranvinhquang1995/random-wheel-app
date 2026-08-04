@@ -2,8 +2,8 @@ import streamlit as st
 import random
 import time
 
-# Cấu hình giao diện rộng rãi (Wide layout) và tiêu đề trang
-st.set_page_config(page_title="Vòng Quay May Mắn - Multiplayer v13", layout="wide")
+# Cấu hình giao diện rộng rãi (Wide layout) và tiêu đề trang ẩm thực
+st.set_page_config(page_title="Vòng quay ẩm thực v13.2", layout="wide")
 
 # CSS ĐẶC BIỆT: Khóa cứng Dark Mode, ẩn menu cài đặt, nút 3 chấm và footer của Streamlit
 st.markdown("""
@@ -26,7 +26,7 @@ st.markdown("""
         color: #ffffff !important;
     }
 
-    /* 3. THIẾT KẾ CÁC Ô TÒA MẶC ĐỊNH (Tông tối gaming) */
+    /* 3. THIẾT KẾ CÁC Ô MÓN ĂN MẶC ĐỊNH (Tông tối ấm áp kích thích vị giác) */
     .keyword-card {
         padding: 15px;
         margin: 5px;
@@ -39,31 +39,31 @@ st.markdown("""
         color: #ffffff !important;
         transition: all 0.1s ease-in-out;
     }
-    /* Kiểu dáng cho ô từ khóa đang được chọn/nhấp nháy khi quay (Đỏ Neon rực rỡ) */
+    /* Kiểu dáng cho ô món ăn đang được chọn khi quay (Cam Neon ẩm thực rực rỡ) */
     .keyword-card-active {
         padding: 15px;
         margin: 5px;
         border-radius: 10px;
-        border: 2px solid #FF4B4B;
+        border: 2px solid #FF5722;
         font-size: 16px;
         font-weight: bold;
         text-align: center;
-        background-color: #FF4B4B !important;
+        background-color: #FF5722 !important;
         color: #ffffff !important;
         transform: scale(1.08);
-        box-shadow: 0px 4px 15px rgba(255, 75, 75, 0.8);
+        box-shadow: 0px 4px 15px rgba(255, 87, 34, 0.8);
         transition: all 0.05s ease-in-out;
     }
-    /* Hiệu ứng nhấp nháy màu vàng dành cho người xem khác khi vòng quay đang chạy */
+    /* Hiệu ứng nhấp nháy màu vàng cam dành cho người xem khác khi vòng quay đang chạy */
     .keyword-card-spinning {
-        animation: pulse-spin 0.6s infinite alternate;
+        animation: pulse-spin-food 0.6s infinite alternate;
     }
-    @keyframes pulse-spin {
+    @keyframes pulse-spin-food {
         from { background-color: #1e222b !important; transform: scale(1); border-color: #3c4048; }
-        to { background-color: #FFD700 !important; transform: scale(1.03); border-color: #FFD700; box-shadow: 0px 4px 10px rgba(255, 215, 0, 0.6); }
+        to { background-color: #FF9800 !important; transform: scale(1.03); border-color: #FF9800; box-shadow: 0px 4px 10px rgba(255, 152, 0, 0.6); }
     }
     
-    /* 4. HỘP NHẬP TỪ KHÓA BÊN CỘT TRÁI (Thiết kế đè lên lớp Form của Streamlit) */
+    /* 4. HỘP NHẬP TỪ KHÓA BÊN CỘT TRÁI */
     div[data-testid="stForm"] {
         background-color: #1e222b !important;
         border-radius: 12px !important;
@@ -72,10 +72,10 @@ st.markdown("""
         border: 1px solid #3c4048 !important;
     }
     
-    /* 5. KIỂU DÁNG THỂ LỊCH SỬ KẾ QUẢ (Đồng bộ Dark Mode) */
+    /* 5. KIỂU DÁNG THẺ LỊCH SỬ KẾ QUẢ (Màu cam ấm áp) */
     .history-card {
         background-color: #1e222b !important;
-        border-left: 5px solid #FF4B4B;
+        border-left: 5px solid #FF5722;
         padding: 10px 15px;
         margin-bottom: 8px;
         border-radius: 4px;
@@ -92,7 +92,8 @@ st.markdown("""
 # 1. KHỞI TẠO BỘ NHỚ CHIA SẺ TRÊN SERVER (Multiplayer Shared State)
 class SharedAppState:
     def __init__(self):
-        self.keywords = ["Apple", "Samsung", "Xiaomi", "Oppo", "Vivo", "Realme"]
+        # Thiết lập các từ khóa mẫu ẩm thực theo yêu cầu
+        self.keywords = ["Bánh tráng trộn", "Tacos", "Banh bao chiên", "Hotdog"]
         self.history = []
         self.is_spinning = False
         self.current_spin_id = 0
@@ -108,24 +109,24 @@ shared = get_shared_state()
 if "seen_spin_id" not in st.session_state:
     st.session_state["seen_spin_id"] = 0
 
-# Hàm sinh HTML lưới ô chứa các từ khóa
+# Hàm sinh HTML lưới ô chứa các từ khóa món ăn
 def render_grid_html(keywords, active_idx=None, is_global_spinning=False):
     if not keywords:
-        return "<div style='text-align: center; color: #888; padding: 20px;'>Chưa có từ khóa nào được nhập. Hãy nhập từ khóa ở bảng bên trái!</div>"
+        return "<div style='text-align: center; color: #888; padding: 20px;'>Chưa có món ăn nào trong thực đơn. Hãy thêm món ăn ở bảng bên trái!</div>"
     
     cols_html = ""
     for idx, kw in enumerate(keywords):
         if idx == active_idx:
-            cols_html += f'<div class="keyword-card-active">{kw}</div>'
+            cols_html += f'<div class="keyword-card-active">🍛 {kw}</div>'
         elif is_global_spinning:
-            cols_html += f'<div class="keyword-card keyword-card-spinning">{kw}</div>'
+            cols_html += f'<div class="keyword-card keyword-card-spinning">🍽️ {kw}</div>'
         else:
-            cols_html += f'<div class="keyword-card">{kw}</div>'
+            cols_html += f'<div class="keyword-card">🍲 {kw}</div>'
     
     return f"""
     <div style="
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
         gap: 10px;
         padding: 10px 0;
     ">
@@ -134,36 +135,36 @@ def render_grid_html(keywords, active_idx=None, is_global_spinning=False):
     """
 
 # Giao diện chính của ứng dụng
-st.markdown("<h1 style='text-align: center; color: #FF4B4B;'>🎰 VÒNG QUAY MAY MẮN MULTIPLAYER 🎰</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; font-size: 16px; margin-bottom: 30px; color: #cccccc !important;'>Mọi người truy cập cùng một link đều có thể thêm từ khóa và xem kết quả quay trực tiếp theo thời gian thực!</p>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; color: #FF5722;'>🍳 VÒNG QUAY ẨM THỰC v13.2 🍳</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; font-size: 16px; margin-bottom: 30px; color: #cccccc !important;'>Được tạo ra nhằm phục vụ cho việc ăn uống vui vẻ mỗi ngày</p>", unsafe_allow_html=True)
 
 # Chia cột chính
 col_left, col_right = st.columns([1, 2])
 
-# CỘT TRÁI: NHẬP TỪ KHÓA
+# CỘT TRÁI: NHẬP TÊN MÓN ĂN
 with col_left:
     # Kiểm tra trạng thái quay toàn cục để khóa ô nhập
     is_locked = shared.is_spinning
     
     # Sử dụng st.form làm hộp chứa duy nhất để triệt tiêu hoàn toàn khung viền thừa bên ngoài
     with st.form("add_kw_form", clear_on_submit=True):
-        st.markdown("<h3 style='margin-top: 0;'>📝 Thêm Từ Khóa</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='margin-top: 0;'>📝 Thêm Món Ăn</h3>", unsafe_allow_html=True)
         
         if is_locked:
-            st.warning("⚠️ Vòng quay đang hoạt động! Chức năng thêm từ khóa tạm thời bị khóa.")
+            st.warning("⚠️ Bếp đang nấu (Đang quay)! Chức năng thêm món ăn tạm thời bị khóa.")
         else:
-            st.markdown("<p style='font-size: 14px; color: #cccccc !important;'>Nhập từ khóa mới rồi ấn nút Thêm hoặc phím Enter:</p>", unsafe_allow_html=True)
+            st.markdown("<p style='font-size: 14px; color: #cccccc !important;'>Nhập món ăn mới rồi ấn nút Thêm hoặc phím Enter:</p>", unsafe_allow_html=True)
         
         new_kw = st.text_input(
-            "Nhập từ khóa mới:", 
-            placeholder="Gõ từ khóa tại đây rồi nhấn Thêm...", 
+            "Nhập món ăn mới:", 
+            placeholder="Gõ tên món ăn (Phở, Bún chả, Pizza...)...", 
             key="add_kw_input",
             disabled=is_locked,
             label_visibility="collapsed"
         )
         
         submit_btn = st.form_submit_button(
-            "➕ Thêm vào danh sách", 
+            "➕ Thêm món ngon", 
             use_container_width=True,
             disabled=is_locked
         )
@@ -172,10 +173,10 @@ with col_left:
             val = new_kw.strip()
             if val not in shared.keywords:
                 shared.keywords.append(val)
-                st.toast(f"Đã thêm từ khóa: {val}")
+                st.toast(f"Đã thêm món ngon: {val} 😋")
                 st.rerun()
             else:
-                st.warning("Từ khóa này đã tồn tại trong danh sách!")
+                st.warning("Món ăn này đã có sẵn trong thực đơn!")
 
 # CỘT PHẢI: HIỂN THỊ DANH SÁCH LIVESYNC, VÒNG QUAY & LÌCH SỬ (Tự động cập nhật qua Fragment)
 with col_right:
@@ -195,55 +196,55 @@ with col_right:
         col_kw_list, col_wheel, col_hist = st.columns([1, 1.8, 0.9])
         is_locked = shared.is_spinning
         
-        # 1. Danh sách từ khóa trực quan (Cập nhật trực tiếp khi người khác thêm/xóa)
+        # 1. Danh sách thực đơn trực quan (Cập nhật trực tiếp khi người khác thêm/xóa)
         with col_kw_list:
-            st.markdown("### 📋 Từ Khóa Hiện Tại")
+            st.markdown("### 📋 Thực Đơn Hiện Tại")
             if not shared.keywords:
-                st.info("Danh sách trống. Vui lòng thêm từ khóa!")
+                st.info("Bếp chưa có món nào. Hãy thêm món ăn ở cột trái!")
             else:
                 for idx, kw in enumerate(shared.keywords):
                     col_item_text, col_item_btn = st.columns([4, 1])
-                    # Hiển thị từ khóa dạng khối bo góc tông tối cực ngầu
-                    col_item_text.markdown(f"<div style='padding: 6px; background: #1e222b; border: 1px solid #3c4048; border-radius: 5px; font-weight: bold; font-size:14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; color: #ffffff !important;'>{kw}</div>", unsafe_allow_html=True)
-                    # Nút xóa nhanh từ khóa đó (Bị khóa khi đang quay)
+                    # Hiển thị món ăn dạng khối bo góc tông tối cực ngầu kèm emoji ngẫu nhiên hoặc cố định
+                    col_item_text.markdown(f"<div style='padding: 6px; background: #1e222b; border: 1px solid #3c4048; border-radius: 5px; font-weight: bold; font-size:14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; color: #ffffff !important;'>🍔 {kw}</div>", unsafe_allow_html=True)
+                    # Nút xóa nhanh từ món đó (Bị khóa khi bếp đang quay)
                     if col_item_btn.button("❌", key=f"del_{idx}_{kw}", disabled=is_locked):
                         shared.keywords.pop(idx)
                         st.rerun()
                 
                 st.write("")
-                # Nút dọn dẹp sạch danh sách (Bị khóa khi đang quay)
-                if st.button("🗑️ Xóa tất cả", use_container_width=True, key="clear_all", disabled=is_locked):
+                # Nút dọn dẹp sạch thực đơn (Bị khóa khi bếp đang quay)
+                if st.button("🗑️ Dọn sạch thực đơn", use_container_width=True, key="clear_all", disabled=is_locked):
                     shared.keywords = []
                     st.rerun()
                     
         # 2. Khung lịch sử góc trên bên phải
         with col_hist:
-            st.markdown("<h3 style='margin-top:0;'>🕒 Lịch Sử</h3>", unsafe_allow_html=True)
+            st.markdown("<h3 style='margin-top:0;'>🕒 Lịch Sử Ăn</h3>", unsafe_allow_html=True)
             if shared.history:
                 for idx, winner_item in enumerate(shared.history[:5]):
-                    st.markdown(f"<div class='history-card'>#{idx+1}: {winner_item}</div>", unsafe_allow_html=True)
+                    st.markdown(f"<div class='history-card'>#{idx+1}: 🍖 {winner_item}</div>", unsafe_allow_html=True)
             else:
-                st.info("Chưa có lượt quay nào.")
+                st.info("Chưa có lượt ăn nào.")
                 
         # 3. Khu vực Vòng Quay May Mắn chính giữa
         with col_wheel:
-            st.markdown("<h3 style='margin-top:0;'>🎯 Trạng Thế Vòng Quay</h3>", unsafe_allow_html=True)
+            st.markdown("<h3 style='margin-top:0;'>🎯 Trạng Thái Chọn Món</h3>", unsafe_allow_html=True)
             grid_placeholder = st.empty()
             
             # Giao diện vòng quay theo trạng thái
             if shared.is_spinning:
-                # Những người dùng khác đang xem sẽ thấy các ô chuyển động nhấp nháy màu vàng
+                # Những người dùng khác đang xem sẽ thấy các ô chuyển động nhấp nháy màu vàng cam
                 grid_placeholder.markdown(render_grid_html(shared.keywords, is_global_spinning=True), unsafe_allow_html=True)
-                st.warning("🎰 Đang có người quay thưởng! Hãy hồi hộp theo dõi...")
-                st.button("🚀 ĐANG QUAY...", use_container_width=True, disabled=True, key="spin_disabled_btn")
+                st.warning("🍳 Đang tìm kiếm món ngon cho bạn... Mùi hương ngào ngạt!")
+                st.button("🥘 BẾP ĐANG NẤU...", use_container_width=True, disabled=True, key="spin_disabled_btn")
             else:
                 # Trạng thái tĩnh bình thường
                 grid_placeholder.markdown(render_grid_html(shared.keywords), unsafe_allow_html=True)
-                spin_btn = st.button("🚀 BẮT ĐẦU QUAY NGẪU NHIÊN", use_container_width=True, key="active_spin_btn")
+                spin_btn = st.button("🎲 HÔM NAY ĂN GÌ? (QUAY NGẪU NHIÊN)", use_container_width=True, key="active_spin_btn")
                 
                 if spin_btn:
                     if len(shared.keywords) < 2:
-                        st.error("❌ Vui lòng có ít nhất 2 từ khóa để quay thưởng!")
+                        st.error("❌ Thực đơn phải có ít nhất 2 món ăn để tiến hành lựa chọn!")
                     else:
                         # Bắt đầu quy trình quay
                         shared.is_spinning = True
@@ -269,7 +270,7 @@ with col_right:
                             grid_placeholder.markdown(render_grid_html(shared.keywords, active_idx=current_idx), unsafe_allow_html=True)
                             time.sleep(sleep_time)
                         
-                        # Xác định kết quả chiến thắng cuối cùng
+                        # Xác định món ăn chiến thắng cuối cùng
                         winner_idx = random.randint(0, num_kws - 1)
                         winner_name = shared.keywords[winner_idx]
                         
@@ -297,7 +298,7 @@ if "show_winner" in st.session_state:
     winner = st.session_state["show_winner"]
     st.balloons()  # Hiệu ứng bong bóng bay chúc mừng toàn màn hình
     
-    # Hộp thông báo Modal Overlay đè lên giao diện chính màu tối cực ngầu
+    # Hộp thông báo Modal Overlay đè lên giao diện chính màu tối cực ngầu tông Cam ấm áp
     st.markdown(f"""
     <div style="
         position: fixed;
@@ -310,12 +311,12 @@ if "show_winner" in st.session_state:
         box-shadow: 0px 12px 40px rgba(0,0,0,0.6);
         z-index: 10000;
         text-align: center;
-        border: 4px solid #FF4B4B;
+        border: 4px solid #FF5722;
         width: 480px;
     ">
-        <h2 style="color: #FF4B4B !important; margin-top: 0; font-size: 32px; letter-spacing: 1px;">🎉 CHÚC MỪNG! 🎉</h2>
-        <p style="font-size: 18px; color: #cccccc !important; margin-bottom: 5px;">Kết quả may mắn nhận được là:</p>
-        <p style="font-size: 36px; font-weight: bold; color: #FFD700 !important; margin: 15px 0; border-bottom: 2px dashed #3c4048; padding-bottom: 15px;">{winner}</p>
+        <h2 style="color: #FF5722 !important; margin-top: 0; font-size: 32px; letter-spacing: 1px;">🎉 CHÚC NGON MIỆNG! 🎉</h2>
+        <p style="font-size: 18px; color: #cccccc !important; margin-bottom: 5px;">Món ngon hoàn hảo của bạn ngày hôm nay là:</p>
+        <p style="font-size: 36px; font-weight: bold; color: #FFD700 !important; margin: 15px 0; border-bottom: 2px dashed #3c4048; padding-bottom: 15px;">🍲 {winner} 🍲</p>
         <div style="
             width: 100%;
             background-color: #2b303c;
@@ -326,13 +327,13 @@ if "show_winner" in st.session_state:
         ">
             <!-- Thanh thời gian 3 giây co ngắn dần bằng CSS Animation -->
             <div style="
-                background-color: #FF4B4B;
+                background-color: #FF5722;
                 height: 100%;
                 width: 100%;
                 animation: countdown-bar 3s linear forwards;
             "></div>
         </div>
-        <p style="font-size: 12px; color: #888888 !important; margin-top: 8px;">Thông báo này sẽ tự động đóng sau 3 giây...</p>
+        <p style="font-size: 12px; color: #888888 !important; margin-top: 8px;">Đang chuẩn bị dọn bàn ăn sau 3 giây...</p>
     </div>
     <style>
         @keyframes countdown-bar {{
@@ -358,6 +359,6 @@ st.markdown("""
     font-size: 14px;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 ">
-    © 2026 - Developed by Nobita | Vòng Quay May Mắn Multiplayer
+    © 2026 - Developed by Nobita | Vòng Quay Ẩm Thực v13.2
 </div>
 """, unsafe_allow_html=True)
